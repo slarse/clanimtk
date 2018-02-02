@@ -10,7 +10,23 @@ import functools
 from .util import concatechain, BACKSPACE_GEN, BACKLINE_GEN
 from .cli import BACKLINE, BACKSPACE
 
-class Animation:
+def Animation(animation_func):
+    """A wrapper for string generators. Provided an endless generator,
+    Animation will turn it into an animation that generates frames, that
+    contain both the characters the generator provides, and escape codes to
+    back up the cursor to the starting position.
+
+    This function wraps the _Animation class, which is the actual implementation
+    of this functionality. It is very important not to use the _Animation class
+    directly, as unexpected behavior can occur
+    """
+    anim = _Animation(animation_func)
+    @functools.wraps(animation_func)
+    def wrapper(*args, **kwargs):
+        return anim(*args, **kwargs)
+    return wrapper
+
+class _Animation:
     """A wrapper class for animation generators. It automatically backs up
     the cursor after each frame, and provides reset and erase functionality.
 
@@ -26,7 +42,6 @@ class Animation:
         self._animation_args = animation_args
         self._animation_kwargs = animation_kwargs
         self._current_frame = ""
-        functools.update_wrapper(self, self._animation_func)
 
     def reset(self):
         """Reset the current animation generator."""

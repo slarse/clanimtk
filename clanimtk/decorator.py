@@ -17,8 +17,8 @@ from .animation import Animation
 daiquiri.setup(level=logging.ERROR)
 LOGGER = daiquiri.getLogger(__name__)
 
-ANNOTATED = '_clanim_annotated'
-ASYNC_ANIMATED = '_clanim_asnyc_animated'
+ANNOTATED = '_clanimtk_annotated'
+ASYNC_ANIMATED = '_clanimtk_asnyc_animated'
 
 @Animation
 def _default_animation():
@@ -115,7 +115,26 @@ class Annotate:
         setattr(wrapper, ANNOTATED, True)
         return wrapper
 
-class Animate:
+def Animate(func=None, *, animation=_default_animation(), step=0.1):
+    animated = _Animate(func=func, animation=animation, step=step)
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return animated(*args, **kwargs)
+    
+    def outer(f):
+        @functools.wraps(f)
+        def inner(*args, **kwargs):
+            return animated(f)(*args, **kwargs)
+        return inner
+
+    if func is not None:
+        return wrapper
+    else:
+        return outer
+
+
+class _Animate:
     """A decorator class for adding a CLI animation to a slow-running funciton.
     Animate uses introspection to figure out if the function it decorates is
     synchronous (defined with 'def') or asynchronous (defined with 'async def'),
