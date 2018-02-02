@@ -8,6 +8,7 @@
 Author: Simon Larsén
 """
 import unittest
+from inspect import signature
 from unittest.mock import MagicMock, Mock, patch
 from .context import clanimtk
 from clanimtk.decorator import Animate, ANNOTATED
@@ -26,6 +27,14 @@ def animate_test_variables():
 
 
 class DecoratorTest(unittest.TestCase):
+
+    def test_animate_does_not_modify_signature(self):
+        def func(a, b, c):
+            pass
+        expected_params = signature(func).parameters.keys()
+        animated_func = Animate(func)
+        actual_params = signature(func).parameters.keys()
+        self.assertEqual(expected_params, actual_params)
 
     def test_animate_with_non_callable(self):
         non_callable = 1

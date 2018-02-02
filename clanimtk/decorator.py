@@ -116,22 +116,20 @@ class Annotate:
         return wrapper
 
 def Animate(func=None, *, animation=_default_animation(), step=0.1):
-    animated = _Animate(func=func, animation=animation, step=step)
-
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return animated(*args, **kwargs)
-    
-    def outer(f):
-        @functools.wraps(f)
-        def inner(*args, **kwargs):
-            return animated(f)(*args, **kwargs)
-        return inner
-
-    if func is not None:
+    if callable(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return _Animate(func=func, animation=animation, step=step)(*args, **kwargs)
         return wrapper
-    else:
+    elif func is None:
+        def outer(f):
+            @functools.wraps(f)
+            def inner(*args, **kwargs):
+                return _Animate(func=f, animation=animation, step=step)(*args, **kwargs)
+            return inner
         return outer
+    else:
+        raise TypeError("argument 'func' must either be None or callable")
 
 
 class _Animate:
