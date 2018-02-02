@@ -115,7 +115,7 @@ class Annotate:
         setattr(wrapper, ANNOTATED, True)
         return wrapper
 
-def Animate(func=None, *, animation=_default_animation(), step=0.1):
+def animate(func=None, *, animation=_default_animation(), step=0.1):
     if callable(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -133,10 +133,15 @@ def Animate(func=None, *, animation=_default_animation(), step=0.1):
 
 
 class _Animate:
-    """A decorator class for adding a CLI animation to a slow-running funciton.
+    """A wrapper class for adding a CLI animation to a slow-running function.
     Animate uses introspection to figure out if the function it decorates is
     synchronous (defined with 'def') or asynchronous (defined with 'async def'),
-    and works equally well with both.
+    and works with both.
+
+    .. DANGER::
+
+        This class is not intended to be used directly, but rather through the
+        animate function.
     """
 
     def __init__(self, func=None, *, animation=_default_animation(), step=.1):
@@ -149,20 +154,16 @@ class _Animate:
             animation (generator): A generator that yields strings for the animation.
             step (float): Seconds between each animation frame.
         """
-        if func and not callable(func):
+        if not callable(func):
             raise TypeError("argument 'func' for {!r} must be "
                             "callable".format(self.__class__.__name__))
-        if callable(func):
-            if asyncio.iscoroutinefunction(func):
-                setattr(self, ASYNC_ANIMATED, True)
-            self._raise_if_annotated(func)
-            partial = functools.partial(self._call_without_kwargs, animation,
-                                        step, func)
-            functools.update_wrapper(self, func)
-        else:
-            partial = functools.partial(self._call_with_kwargs, animation,
-                                        step)
-        self._call = partial
+        if asyncio.iscoroutinefunction(func):
+            setattr(self, ASYNC_ANIMATED, True)
+        self._raise_if_annotated(func)
+        self._func = func
+        self._animation = animation
+        self._step = step
+        functools.update_wrapper(self, func)
 
     def _call_without_kwargs(self, animation_, step, func, *args, **kwargs):
         """The function that __call__ calls if the constructor did not recieve
@@ -182,33 +183,13 @@ class _Animate:
         """
         return get_supervisor(func)(animation_, step, *args, **kwargs)
 
-    def _call_with_kwargs(self, animation_, step, func):
-        """The function that __call__ calls when the constructor received kwargs.
-
-        NOTE: This method should ONLY be called directly in the constructor!
-
-        Args:
-            animation_ (generator): A generator yielding strings for the animation.
-            func (function): A function to run alongside an animation.
-        Returns:
-            A function if func is a function, and a coroutine if func is a
-            coroutine.
-        """
-        self._raise_if_annotated(func)
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            return get_supervisor(func)(animation_, step, *args, **kwargs)
-        if asyncio.iscoroutinefunction(func):
-            setattr(wrapper, ASYNC_ANIMATED, True)
-        return wrapper
-
-    def __call__(self, func=None, *args, **kwargs):
+    def __call__(self, *args, **kwargs):
         """Make the class instance callable.
 
         func (function): If the
         """
-        LOGGER.info(f'Passing through __call__, calling {self._call}')
-        return self._call(func, *args, **kwargs) if func else self._call()
+        supervisor = get_supervisor(self._func)
+        return supervisor(self._animation, self._step, *args, **kwargs)
 
     def _raise_if_annotated(self, func):
         """Raise TypeError if a function is decorated with Annotate, as such

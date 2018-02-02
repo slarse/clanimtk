@@ -11,10 +11,10 @@ import unittest
 from inspect import signature
 from unittest.mock import MagicMock, Mock, patch
 from .context import clanimtk
-from clanimtk.decorator import Animate, ANNOTATED
+from clanimtk.decorator import animate, ANNOTATED
 
 def animate_test_variables():
-    """Return the variables for the Animate tests."""
+    """Return the variables for the animate tests."""
     return_value = 42**42
     mock_function = MagicMock(return_value=return_value)
     setattr(mock_function, ANNOTATED, False)
@@ -22,8 +22,8 @@ def animate_test_variables():
     mock_function.__doc__ = docstring
     mock_animation = MagicMock()
     step = .1
-    animate = Animate(animation=mock_animation, step=step)
-    return mock_function, return_value, docstring, mock_animation, step, animate
+    animate_ = animate(animation=mock_animation, step=step)
+    return mock_function, return_value, docstring, mock_animation, step, animate_
 
 
 class DecoratorTest(unittest.TestCase):
@@ -32,25 +32,25 @@ class DecoratorTest(unittest.TestCase):
         def func(a, b, c):
             pass
         expected_params = signature(func).parameters.keys()
-        animated_func = Animate(func)
+        animated_func = animate(func)
         actual_params = signature(func).parameters.keys()
         self.assertEqual(expected_params, actual_params)
 
     def test_animate_with_non_callable(self):
         non_callable = 1
         self.assertRaises(TypeError,
-                          Animate,
+                          animate,
                           func=non_callable)
 
     @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_with_constructor_kwargs(self, mock_get_supervisor):
         """This test emulates using kwargs in the decorator, so
         that the constructor is actually called on the kwargs, and
-        not on the function that Animate decorates.
+        not on the function that animate decorates.
         """
-        mock_function, return_value, docstring, mock_animation, step, animate = (
+        mock_function, return_value, docstring, mock_animation, step, animate_ = (
             animate_test_variables())
-        wrapped_function = animate(mock_function)
+        wrapped_function = animate_(mock_function)
         result = wrapped_function()
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once_with(mock_animation, step)
@@ -62,9 +62,9 @@ class DecoratorTest(unittest.TestCase):
             self, mock_get_supervisor):
         args = ('herro', 2, lambda x: 2*x)
         kwargs = {'herro': 2, 'python': 42}
-        mock_function, return_value, docstring, mock_animation, step, animate = (
+        mock_function, return_value, docstring, mock_animation, step, animate_ = (
             animate_test_variables())
-        wrapped_function = animate(mock_function)
+        wrapped_function = animate_(mock_function)
         result = wrapped_function(*args, **kwargs)
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once_with(mock_animation, step,
@@ -77,7 +77,7 @@ class DecoratorTest(unittest.TestCase):
         """Emulates decorating a function without calling the constructor explicitly."""
         mock_function, return_value, docstring, _, _, _ = (
             animate_test_variables())
-        wrapped_function = Animate(mock_function)
+        wrapped_function = animate(mock_function)
         result = wrapped_function()
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once()
@@ -91,7 +91,7 @@ class DecoratorTest(unittest.TestCase):
         kwargs = {'herro': 2, 'python': 42}
         mock_function, return_value, docstring, _, _, _ = (
             animate_test_variables())
-        wrapped_function = Animate(mock_function)
+        wrapped_function = animate(mock_function)
         result = wrapped_function(*args, **kwargs)
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once()
