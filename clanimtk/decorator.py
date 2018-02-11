@@ -13,7 +13,7 @@ import sys
 import itertools
 import daiquiri
 from clanimtk.util import get_supervisor
-from clanimtk.animation import Animation
+from clanimtk.animation import animation
 
 daiquiri.setup(level=logging.ERROR)
 LOGGER = daiquiri.getLogger(__name__)
@@ -21,23 +21,25 @@ LOGGER = daiquiri.getLogger(__name__)
 ANNOTATED = '_clanimtk_annotated'
 ASYNC_ANIMATED = '_clanimtk_asnyc_animated'
 
-@Animation
+@animation
 def _default_animation():
     return itertools.cycle([("#"*i).ljust(5) for i in range(5)])
 
 class Annotate:
     """A decorator meant for decorating functions that are decorated with the
-    Animation decorator. It prints a message to stdout before and/or after the
+    animation decorator. It prints a message to stdout before and/or after the
     function has finished.
 
-    This decorator can also be used standalone, but you should NOT decorate a
-    function that is decorated with Annotate with Animate. That is to say,
-    the decorator order must be like this:
+    .. DANGER::
 
-        @Annotate
-        @Animate
-        def some_function()
-            pass
+        This decorator can also be used standalone, but you should NOT decorate a
+        function that is decorated with Annotate with Animate. That is to say,
+        the decorator order must be like this:
+
+            @Annotate
+            @Animate
+            def some_function()
+                pass
     """
     def __init__(self, *,start_msg=None, end_msg=None, start_no_nl=False):
         """Note that both arguments are keyword only arguments.
@@ -123,23 +125,41 @@ class Annotate:
         return wrapper
 
 def animate(func=None, *, animation=_default_animation(), step=0.1):
+    """Wrapper function for the _Animate wrapper class.
+    
+    Args:
+        func: A function to be animated.
+        animation: The animation to run.
+        step: Approximate timestep between frames.
+    Returns:
+        An animated version of func if func is not None. Otherwise, a function
+        that takes a function and returns an animated version of that.
+    """
     if callable(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            return _Animate(func=func, animation=animation, step=step)(*args, **kwargs)
-        ret = wrapper
+        return _animate_no_kwargs(func, animation, step)
     elif func is None:
-        def outer(f):
-            @functools.wraps(f)
-            def inner(*args, **kwargs):
-                return _Animate(func=f, animation=animation, step=step)(*args, **kwargs)
-            return inner
-        ret = outer
+        return _animate_with_kwargs(animation=animation, step=step)
     else:
         raise TypeError("argument 'func' must either be None or callable")
-    # maintain corutinefunction status, if present
-    return ret if not asyncio.iscoroutinefunction(func)\
-               else asyncio.coroutine(ret)
+
+
+def _animate_no_kwargs(func, animation, step):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return _Animate(func=func, animation=animation, step=step)(*args, **kwargs)
+    return wrapper if not asyncio.iscoroutinefunction(func)\
+                   else asyncio.coroutine(wrapper)
+
+
+def _animate_with_kwargs(**decorator_kwargs):
+    def outer(func):
+        @functools.wraps(func)
+        def inner(*args, **function_kwargs):
+            return _Animate(func=func, **decorator_kwargs)\
+                   (*args, **function_kwargs)
+        return inner if not asyncio.iscoroutinefunction(func)\
+                       else asyncio.coroutine(inner)
+    return outer
 
 
 class _Animate:

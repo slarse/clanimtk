@@ -7,18 +7,27 @@
 """
 import itertools
 import functools
-from .util import concatechain, BACKSPACE_GEN, BACKLINE_GEN
-from .cli import BACKLINE, BACKSPACE
+from typing import Generator, Callable, Iterator
+from clanimtk.util import concatechain, BACKSPACE_GEN, BACKLINE_GEN
+from clanimtk.cli import BACKLINE, BACKSPACE
 
-def Animation(animation_func):
-    """A wrapper for string generators. Provided an endless generator,
-    Animation will turn it into an animation that generates frames, that
-    contain both the characters the generator provides, and escape codes to
-    back up the cursor to the starting position.
+StrGen = Generator[str, None, None]
+StrGenFunc = Callable[[], StrGen]
+
+def animation(animation_func: StrGenFunc) -> Callable:
+    """A wrapper for string generators. Provided an endless string generator
+    function, Animation will turn it into an animation generator that yields
+    frames (endlessly), that contain both the characters the generator
+    provides, and escape codes to back up the cursor to the starting position.
+
+    .. IMPORTANT::
 
     This function wraps the _Animation class, which is the actual implementation
     of this functionality. It is very important not to use the _Animation class
     directly, as unexpected behavior can occur
+
+    Args:
+        animation_func: A function that returns an endles generator.
     """
     anim = _Animation(animation_func)
     @functools.wraps(animation_func)
@@ -30,8 +39,10 @@ class _Animation:
     """A wrapper class for animation generators. It automatically backs up
     the cursor after each frame, and provides reset and erase functionality.
 
-    Should only ever be used internally in the clanim package, and only
-    as an argumentless decorator.
+    .. DANGER::
+
+        Do not use directly, use the animation function instead.
+
     """
     def __init__(self, animation_func, current_generator=None,
                  back_up_generator=None, animation_args=None,
@@ -50,7 +61,7 @@ class _Animation:
         self._current_generator = itertools.cycle(
             concatechain(animation_gen, self._back_up_generator))
 
-    def get_erase_frame(self):
+    def get_erase_frame(self) -> str:
         """Return a frame that completely erases the current frame, and then
         backs up.
 
@@ -65,7 +76,7 @@ class _Animation:
             frame = '\n'.join([line]*height) + BACKLINE*(height - 1)
         return frame
 
-    def __next__(self):
+    def __next__(self) -> str:
         self._current_frame = next(self._current_generator)
         return self._current_frame
 
@@ -79,10 +90,10 @@ class _Animation:
         return cls(self._animation_func, self._current_generator,
                    self._back_up_generator, args, kwargs)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter(self._current_generator)
 
-def _get_back_up_generator(animation_func, *args, **kwargs):
+def _get_back_up_generator(animation_func, *args, **kwargs) -> StrGen:
     """Create a generator for the provided animation function that backs up
     the cursor after a frame. Assumes that the animation function provides
     a generator that yields strings of constant width and height.
@@ -103,7 +114,8 @@ def _get_back_up_generator(animation_func, *args, **kwargs):
     else:
         return BACKLINE_GEN(height)
 
-def _backspaced_single_line_animation(animation, *args, **kwargs):
+def _backspaced_single_line_animation(animation_: StrGenFunc, *args, **kwargs)\
+        -> StrGen:
     """Turn an animation into an automatically backspaced animation.
 
     Args:
@@ -115,11 +127,11 @@ def _backspaced_single_line_animation(animation, *args, **kwargs):
         The animation generator, with backspaces applied to each but the first
         frame.
     """
-    animation_gen = animation(*args, **kwargs)
+    animation_gen = animation_(*args, **kwargs)
     yield next(animation_gen)
     yield from concatechain(BACKSPACE_GEN(kwargs['width']), animation_gen)
 
-def _raise_value_error_if_width_is_too_small(width, limit=1):
+def _raise_value_error_if_width_is_too_small(width: int, limit=1):
     """Raise width error if the width is less than the limit.
 
     Args:
