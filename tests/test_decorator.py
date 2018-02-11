@@ -8,6 +8,7 @@
 Author: Simon Larsén
 """
 import unittest
+import asyncio
 import io
 from inspect import signature
 from unittest.mock import MagicMock, Mock, patch
@@ -29,6 +30,18 @@ def animate_test_variables():
 
 
 class AnimateTest(unittest.TestCase):
+
+    def test_animate_does_not_remove_corutinefunc_status(self):
+        async def func():
+            pass
+        animated_func = animate(func)
+        assert asyncio.iscoroutinefunction(animated_func)
+
+    def test_animate_does_add_corotuinefunc_status(self):
+        def func():
+            pass
+        animated_func = animate(func)
+        assert not asyncio.iscoroutinefunction(animated_func)
 
     def test_animate_does_not_modify_signature(self):
         def func(a, b, c):
@@ -116,13 +129,13 @@ class AnnotateTest(unittest.TestCase):
 
     def test_annotate_raises_when_start_is_not_none_nor_string(self):
         self.assertRaises(
-            ValueError,
+            TypeError,
             annotate,
             start_msg=2)
 
     def test_annotate_raises_when_end_msg_is_not_none_nor_string(self):
         self.assertRaises(
-            ValueError,
+            TypeError,
             annotate,
             end_msg=2)
 

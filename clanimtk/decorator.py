@@ -5,14 +5,15 @@
     :synopsis: This module contains all of the clanim decorators.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """
+#pylint: disable=missing-docstring,too-few-public-methods
 import asyncio
 import logging
 import functools
 import sys
-import daiquiri
 import itertools
-from .util import get_supervisor
-from .animation import Animation
+import daiquiri
+from clanimtk.util import get_supervisor
+from clanimtk.animation import Animation
 
 daiquiri.setup(level=logging.ERROR)
 LOGGER = daiquiri.getLogger(__name__)
@@ -50,9 +51,17 @@ class Annotate:
         if start_msg is None and end_msg is None:
             raise ValueError(
                 "At least one of 'start_msg' and 'end_msg' must be specified.")
+        self._raise_if_not_none_nor_string(start_msg, "start_msg")
+        self._raise_if_not_none_nor_string(end_msg, "end_msg")
         self._start_msg = start_msg
         self._end_msg = end_msg
         self._start_no_nl = start_no_nl
+
+    def _raise_if_not_none_nor_string(self, msg, parameter_name):
+        if msg is not None and not isinstance(msg, str):
+            raise TypeError(
+                f"Bad operand type for {self.__class__.__name__!r}"
+                f".{parameter_name}: {type(msg)}")
 
     def _start_print(self):
         """Print the start message with or without newline depending on the
@@ -71,13 +80,11 @@ class Annotate:
             args (tuple): Arguments for func.
             kwargs (dict): Keyword arguments for func.
         """
-        if asyncio.iscoroutinefunction(func) or (hasattr(func, ASYNC_ANIMATED) 
-                                                 and getattr(func, ASYNC_ANIMATED)):
+        if asyncio.iscoroutinefunction(func):
             return self._async_call(func, *args, **kwargs)
-        else:
-            return self._sync_call(func, *args, **kwargs)
+        return self._sync_call(func, *args, **kwargs)
 
-    def _sync_call(self, func, *args, **kwargs):
+    def _sync_call(self, func):
         """__call__ function for regular synchronous functions.
 
         Args:
@@ -96,8 +103,8 @@ class Annotate:
         setattr(wrapper, ANNOTATED, True)
         return wrapper
 
-    def _async_call(self, func, *args, **kwargs):
-        """__call__ functino for asyncio coroutines.
+    def _async_call(self, func):
+        """__call__ function for asyncio coroutines.
 
         Args:
             func (function): The annotated function.
@@ -120,16 +127,19 @@ def animate(func=None, *, animation=_default_animation(), step=0.1):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return _Animate(func=func, animation=animation, step=step)(*args, **kwargs)
-        return wrapper
+        ret = wrapper
     elif func is None:
         def outer(f):
             @functools.wraps(f)
             def inner(*args, **kwargs):
                 return _Animate(func=f, animation=animation, step=step)(*args, **kwargs)
             return inner
-        return outer
+        ret = outer
     else:
         raise TypeError("argument 'func' must either be None or callable")
+    # maintain corutinefunction status, if present
+    return ret if not asyncio.iscoroutinefunction(func)\
+               else asyncio.coroutine(ret)
 
 
 class _Animate:
