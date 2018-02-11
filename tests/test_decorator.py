@@ -14,7 +14,7 @@ import pytest
 from inspect import signature
 from unittest.mock import MagicMock, Mock, patch
 from .context import clanimtk
-from clanimtk.decorator import animate, ANNOTATED
+from clanimtk.decorator import animate, ANNOTATED, _default_animation
 from clanimtk import annotate
 
 def animate_test_variables():
@@ -32,13 +32,25 @@ def animate_test_variables():
 
 class TestAnimate:
 
+    def test_animate_with_kwargs_does_not_remove_coroutinefunc_status(self):
+        async def func():
+            pass
+        animated_func = animate(animation=_default_animation())(func)
+        assert asyncio.iscoroutinefunction(animated_func)
+
+    def test_animate_with_kwargs_does_not_add_corotuinefunc_status(self):
+        def func():
+            pass
+        animated_func = animate(animation=_default_animation())(func)
+        assert not asyncio.iscoroutinefunction(animated_func)
+
     def test_animate_does_not_remove_corutinefunc_status(self):
         async def func():
             pass
         animated_func = animate(func)
         assert asyncio.iscoroutinefunction(animated_func)
 
-    def test_animate_does_add_corotuinefunc_status(self):
+    def test_animate_does_not_add_corotuinefunc_status(self):
         def func():
             pass
         animated_func = animate(func)
