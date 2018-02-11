@@ -55,14 +55,6 @@ to PyPi. Unless you are planning to work on this yourself, I suggest going with 
     - For development, use ``pip install -e .`` in a ``virtualenv``.
 3. Further steps to be added ...
    
-How to run
-==========
-Assuming everything is installed correctly, running the application is dead simple.
-
-1. Execute ``clanimtk runserver -h x.x.x.x -p n`` to run ``pdfebc-web`` 
-   where ``x.x.x.x`` is the hostname and ``n`` is the port. 
-2. Further steps to be added ...
-
 License
 =======
 This software is licensed under the MIT License. See the `license file`_ file for specifics.
