@@ -10,6 +10,7 @@ Author: Simon Larsén
 import unittest
 import asyncio
 import io
+import pytest
 from inspect import signature
 from unittest.mock import MagicMock, Mock, patch
 from .context import clanimtk
@@ -29,7 +30,7 @@ def animate_test_variables():
     return mock_function, return_value, docstring, mock_animation, step, animate_
 
 
-class AnimateTest(unittest.TestCase):
+class TestAnimate:
 
     def test_animate_does_not_remove_corutinefunc_status(self):
         async def func():
@@ -49,13 +50,12 @@ class AnimateTest(unittest.TestCase):
         expected_params = signature(func).parameters.keys()
         animated_func = animate(func)
         actual_params = signature(func).parameters.keys()
-        self.assertEqual(expected_params, actual_params)
+        assert actual_params == expected_params
 
     def test_animate_with_non_callable(self):
         non_callable = 1
-        self.assertRaises(TypeError,
-                          animate,
-                          func=non_callable)
+        with pytest.raises(TypeError):
+            animate(func=non_callable)
 
     @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_with_decorator_kwargs(self, mock_get_supervisor):
@@ -69,8 +69,8 @@ class AnimateTest(unittest.TestCase):
         result = wrapped_function()
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once_with(mock_animation, step)
-        self.assertEqual(docstring, wrapped_function.__doc__)
-        self.assertEqual(return_value, result)
+        assert wrapped_function.__doc__ == docstring
+        assert result == return_value
 
     @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_with_decorator_kwargs_and_function_args_and_kwargs(
@@ -84,8 +84,8 @@ class AnimateTest(unittest.TestCase):
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once_with(mock_animation, step,
                                               *args, **kwargs)
-        self.assertEqual(docstring, wrapped_function.__doc__)
-        self.assertEqual(return_value, result)
+        assert wrapped_function.__doc__ == docstring
+        assert result == return_value
 
     @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_without_decorator_kwargs(self, mock_get_supervisor):
@@ -96,8 +96,8 @@ class AnimateTest(unittest.TestCase):
         result = wrapped_function()
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once()
-        self.assertEqual(docstring, wrapped_function.__doc__)
-        self.assertEqual(return_value, result)
+        assert wrapped_function.__doc__ == docstring
+        assert result == return_value
 
     @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_without_decorator_kwargs_with_function_args_and_kwargs(
@@ -110,12 +110,12 @@ class AnimateTest(unittest.TestCase):
         result = wrapped_function(*args, **kwargs)
         mock_get_supervisor.assert_called_once_with(mock_function)
         mock_function.assert_called_once()
-        self.assertEqual(docstring, wrapped_function.__doc__)
-        self.assertEqual(return_value, result)
+        assert wrapped_function.__doc__ == docstring
+        assert result == return_value
 
-class AnnotateTest(unittest.TestCase):
+class TestAnnotate:
 
-    def setUp(self):
+    def setup(self):
         self.doc = "This is just a stupid test function"
         def func(abra, ka, dabra):
             pass
@@ -123,53 +123,48 @@ class AnnotateTest(unittest.TestCase):
         self.func = func
 
     def test_annotate_raises_when_start_and_end_msgs_are_none(self):
-        self.assertRaises(
-            ValueError,
-            annotate)
+        with pytest.raises(ValueError):
+            annotate()
 
     def test_annotate_raises_when_start_is_not_none_nor_string(self):
-        self.assertRaises(
-            TypeError,
-            annotate,
-            start_msg=2)
+        with pytest.raises(TypeError):
+            annotate(start_msg=2)
 
     def test_annotate_raises_when_end_msg_is_not_none_nor_string(self):
-        self.assertRaises(
-            TypeError,
-            annotate,
-            end_msg=2)
+        with pytest.raises(TypeError):
+            annotate(end_msg=2)
 
     def test_annotate_does_not_modify_signature(self):
         expected_params = signature(self.func).parameters.keys()
         animated_func = annotate(start_msg='bogus')(self.func)
         actual_params = signature(self.func).parameters.keys()
-        self.assertEqual(expected_params, actual_params)
+        assert actual_params == expected_params
 
     def test_annotate_does_not_modify_doc(self):
         expected_doc = self.doc
         actual_doc = annotate(start_msg='herro')(self.func).__doc__
-        self.assertEqual(expected_doc, actual_doc)
+        assert actual_doc == expected_doc
 
     def test_annotate_prints_only_start_msg_and_newline_when_end_msg_is_none(self):
         with patch('sys.stdout', new=io.StringIO()) as mock_stdout:
             msg = 'This is the start'
             start_only = annotate(start_msg=msg)(self.func)
             start_only(1,2,3) # 3 arbitrary arguments
-            self.assertEqual(msg + '\n', mock_stdout.getvalue())
+            assert mock_stdout.getvalue() == msg + '\n'
 
     def test_annotate_ommits_newline_after_start_msg_if_no_start_nl(self):
         with patch('sys.stdout', new=io.StringIO()) as mock_stdout:
             msg = 'This is the start'
             start_only = annotate(start_msg=msg, start_no_nl=True)(self.func)
             start_only(1,2,3) # 3 arbitrary arguments
-            self.assertEqual(msg, mock_stdout.getvalue())
+            assert mock_stdout.getvalue() == msg
 
     def test_annotate_prints_only_end_msg_plus_newline_when_start_msg_is_none(self):
         with patch('sys.stdout', new=io.StringIO()) as mock_stdout:
             msg = 'This is the end'
             end_only = annotate(end_msg=msg)(self.func)
             end_only(1,2,3) # 3 arbitrary arguments
-            self.assertEqual(msg + '\n', mock_stdout.getvalue())
+            assert mock_stdout.getvalue() == msg + '\n'
 
     def test_annotate_prints_start_and_end_msgs_in_correct_order(self):
         with patch('sys.stdout', new=io.StringIO()) as mock_stdout:
@@ -178,5 +173,4 @@ class AnnotateTest(unittest.TestCase):
             expected_print = start_msg + "\n" + end_msg + "\n"
             annotated = annotate(start_msg=start_msg, end_msg=end_msg)(self.func)
             annotated(1,2,3)
-            self.assertEqual(expected_print, mock_stdout.getvalue())
-
+            assert mock_stdout.getvalue() == expected_print
