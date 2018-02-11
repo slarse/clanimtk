@@ -19,7 +19,6 @@ daiquiri.setup(level=logging.ERROR)
 LOGGER = daiquiri.getLogger(__name__)
 
 ANNOTATED = '_clanimtk_annotated'
-ASYNC_ANIMATED = '_clanimtk_asnyc_animated'
 
 @animation
 def _default_animation():
@@ -187,8 +186,6 @@ class _Animate:
         if not callable(func):
             raise TypeError("argument 'func' for {!r} must be "
                             "callable".format(self.__class__.__name__))
-        if asyncio.iscoroutinefunction(func):
-            setattr(self, ASYNC_ANIMATED, True)
         self._raise_if_annotated(func)
         self._func = func
         self._animation = animation

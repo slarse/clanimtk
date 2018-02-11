@@ -22,14 +22,15 @@ def animation(animation_func: StrGenFunc) -> Callable:
 
     .. IMPORTANT::
 
-    This function wraps the _Animation class, which is the actual implementation
-    of this functionality. It is very important not to use the _Animation class
-    directly, as unexpected behavior can occur
+        This function wraps the _Animation class, which is the actual implementation
+        of this functionality. It is very important not to use the _Animation class
+        directly, as unexpected behavior can occur
 
     Args:
         animation_func: A function that returns an endles generator.
     """
-    anim = _Animation(animation_func)
+    endless_animation_func = lambda: itertools.cycle(animation_func())
+    anim = _Animation(endless_animation_func)
     @functools.wraps(animation_func)
     def wrapper(*args, **kwargs):
         return anim(*args, **kwargs)
