@@ -1,4 +1,6 @@
+asynctest
 codecov
+daiquiri
 pytest
 pytest-cov
 sphinx
