@@ -117,9 +117,9 @@ def _sync_supervisor(func, animation_, step, *args, **kwargs):
 
 def concatechain(*generators, separator=''):
     """Create generator that in each iteration takes one value from each of the
-    supplied generators, adds them togeter in-place (so the values yielded must
-    suport __iadd__) and yields the result. Stops as soon as any iterator
-    raises StopIteration and returns the value contained in it.
+    supplied generators, joins them together with the specified separator and
+    yields the result. Stops as soon as any iterator raises StopIteration and
+    returns the value contained in it.
 
     Primarily created for concatenating strings, hence the name.
 
@@ -132,9 +132,7 @@ def concatechain(*generators, separator=''):
     """
     while True:
         try:
-            next_ = []
-            for gen in generators:
-                next_.append(next(gen))
+            next_ = [next(gen) for gen in generators]
             yield separator.join(next_)
         except StopIteration as e:
             return e.value
