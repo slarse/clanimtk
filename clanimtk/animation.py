@@ -29,8 +29,7 @@ def animation(animation_func: StrGenFunc) -> Callable:
     Args:
         animation_func: A function that returns an endles generator.
     """
-    endless_animation_func = lambda: itertools.cycle(animation_func())
-    anim = _Animation(endless_animation_func)
+    anim = _Animation(animation_func)
     @functools.wraps(animation_func)
     def wrapper(*args, **kwargs):
         return anim(*args, **kwargs)
