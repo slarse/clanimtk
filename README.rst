@@ -23,11 +23,13 @@ clanimtk
 
 Overview
 ========
-Command line animations made easy!
+``clanimtk`` (Command Line Animation Toolkit) is a toolkit for quickly creating
+custom command line animations.
 
 Requirements
 ============
-To be added ...
+* For production use, only `daiquiri` is required (for logging).
+* For development, see `requirements.txt`_.
 
 Install
 =======
@@ -40,7 +42,6 @@ can be done like this:
 
 1. Execute ``pip install --user clanimtk`` to install the package.
 2. Further steps to be added ...
-
 
 Option 2: Clone the repo and the install with ``pip``
 -----------------------------------------------------
