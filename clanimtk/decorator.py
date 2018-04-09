@@ -11,9 +11,10 @@ import logging
 import functools
 import sys
 import itertools
+from typing import Generator, Callable
 import daiquiri
-from clanimtk.util import get_supervisor
-from clanimtk.animation import animation
+from clanimtk.util import get_supervisor, concatechain
+from clanimtk.animation import animation, StrGen, StrGenFunc
 
 daiquiri.setup(level=logging.ERROR)
 LOGGER = daiquiri.getLogger(__name__)
@@ -235,3 +236,20 @@ class _Animate:
                    'Please reverse the order of the decorators!'
                    .format(self.__class__.__name__, Annotate.__name__))
             raise TypeError(msg)
+
+def multiline_frames(height=5, offset=1) -> StrGenFunc:
+    def outer(func: Callable):
+        @functools.wraps(func)
+        def inner(*args, **kwargs):
+            return _multi_line_frame_gen(func, height, offset, *args, **kwargs)
+        return inner
+    return outer
+
+def _multi_line_frame_gen(frame_gen_func, height, offset, *args, **kwargs):
+    frame_generators = []
+    for i in range(height):
+        frame_generators.append(frame_gen_func(*args, **kwargs))
+        for _ in range(i*offset): # advance animation
+            frame_generators[i].__next__()
+    frame_gen = concatechain(*frame_generators, separator='\n')
+    yield from frame_gen

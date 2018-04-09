@@ -131,17 +131,3 @@ def _backspaced_single_line_animation(animation_: StrGenFunc, *args, **kwargs)\
     yield next(animation_gen)
     yield from concatechain(BACKSPACE_GEN(kwargs['width']), animation_gen)
 
-def _raise_value_error_if_width_is_too_small(width: int, limit=1):
-    """Raise width error if the width is less than the limit.
-
-    Args:
-        width: Any width that is orderable, but must be of the same type as
-        limit.
-        limit: Any width that is orderable, but must be of the same type
-        as width.
-    Raises:
-        ValueError
-    """
-    if width <= limit:
-        raise ValueError("Argument 'width' must be greater than {}"
-                         .format(str(limit)))
