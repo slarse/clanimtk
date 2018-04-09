@@ -12,11 +12,8 @@ import functools
 import itertools
 import threading
 import logging
-import daiquiri
 from .cli import animate_cli, BACKSPACE
 
-daiquiri.setup(level=logging.ERROR)
-LOGGER = daiquiri.getLogger(__name__)
 
 BACKSPACE_GEN = lambda size: itertools.cycle([BACKSPACE*size])
 BACKLINE_GEN = lambda lines: itertools.cycle(['\033[F'*(lines-1)])

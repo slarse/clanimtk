@@ -12,12 +12,8 @@ import functools
 import sys
 import itertools
 from typing import Generator, Callable
-import daiquiri
 from clanimtk.util import get_supervisor, concatechain
 from clanimtk.animation import animation
-
-daiquiri.setup(level=logging.ERROR)
-LOGGER = daiquiri.getLogger(__name__)
 
 ANNOTATED = '_clanimtk_annotated'
 
