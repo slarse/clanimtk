@@ -14,16 +14,18 @@ import itertools
 from typing import Generator, Callable
 import daiquiri
 from clanimtk.util import get_supervisor, concatechain
-from clanimtk.animation import animation, StrGen, StrGenFunc
+from clanimtk.animation import animation
 
 daiquiri.setup(level=logging.ERROR)
 LOGGER = daiquiri.getLogger(__name__)
 
 ANNOTATED = '_clanimtk_annotated'
 
+
 @animation
 def _default_animation():
-    return itertools.cycle([("#"*i).ljust(5) for i in range(5)])
+    return itertools.cycle([("#" * i).ljust(5) for i in range(5)])
+
 
 class Annotate:
     """A decorator meant for decorating functions that are decorated with the
@@ -41,7 +43,8 @@ class Annotate:
             def some_function()
                 pass
     """
-    def __init__(self, *,start_msg=None, end_msg=None, start_no_nl=False):
+
+    def __init__(self, *, start_msg=None, end_msg=None, start_no_nl=False):
         """Note that both arguments are keyword only arguments.
 
         Args:
@@ -61,9 +64,8 @@ class Annotate:
 
     def _raise_if_not_none_nor_string(self, msg, parameter_name):
         if msg is not None and not isinstance(msg, str):
-            raise TypeError(
-                f"Bad operand type for {self.__class__.__name__!r}"
-                f".{parameter_name}: {type(msg)}")
+            raise TypeError(f"Bad operand type for {self.__class__.__name__!r}"
+                            f".{parameter_name}: {type(msg)}")
 
     def _start_print(self):
         """Print the start message with or without newline depending on the
@@ -94,6 +96,7 @@ class Annotate:
             args (tuple): Arguments for func.
             kwargs (dict): Keyword arguments for func.
         """
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             if self._start_msg:
@@ -102,6 +105,7 @@ class Annotate:
             if self._end_msg:
                 print(self._end_msg)
             return result
+
         setattr(wrapper, ANNOTATED, True)
         return wrapper
 
@@ -113,6 +117,7 @@ class Annotate:
             args (tuple): Arguments for func.
             kwargs (dict): Keyword arguments for func.
         """
+
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             if self._start_msg:
@@ -121,8 +126,10 @@ class Annotate:
             if self._end_msg:
                 print(self._end_msg)
             return result
+
         setattr(wrapper, ANNOTATED, True)
         return wrapper
+
 
 def animate(func=None, *, animation=_default_animation(), step=0.1):
     """Wrapper function for the _Animate wrapper class.
@@ -146,7 +153,8 @@ def animate(func=None, *, animation=_default_animation(), step=0.1):
 def _animate_no_kwargs(func, animation, step):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        return _Animate(func=func, animation=animation, step=step)(*args, **kwargs)
+        return _Animate(
+            func=func, animation=animation, step=step)(*args, **kwargs)
     return wrapper if not asyncio.iscoroutinefunction(func)\
                    else asyncio.coroutine(wrapper)
 
@@ -159,6 +167,7 @@ def _animate_with_kwargs(**decorator_kwargs):
                    (*args, **function_kwargs)
         return inner if not asyncio.iscoroutinefunction(func)\
                        else asyncio.coroutine(inner)
+
     return outer
 
 
@@ -233,23 +242,27 @@ class _Animate:
         if hasattr(func, ANNOTATED) and getattr(func, ANNOTATED):
             msg = ('Functions decorated with {!r} '
                    'should not be decorated with {!r}.\n'
-                   'Please reverse the order of the decorators!'
-                   .format(self.__class__.__name__, Annotate.__name__))
+                   'Please reverse the order of the decorators!'.format(
+                       self.__class__.__name__, Annotate.__name__))
             raise TypeError(msg)
 
-def multiline_frames(height=5, offset=1) -> StrGenFunc:
-    def outer(func: Callable):
+
+def multiline_frames(height=5, offset=1):
+    def outer(func):
         @functools.wraps(func)
         def inner(*args, **kwargs):
             return _multi_line_frame_gen(func, height, offset, *args, **kwargs)
+
         return inner
+
     return outer
+
 
 def _multi_line_frame_gen(frame_gen_func, height, offset, *args, **kwargs):
     frame_generators = []
     for i in range(height):
         frame_generators.append(frame_gen_func(*args, **kwargs))
-        for _ in range(i*offset): # advance animation
+        for _ in range(i * offset):  # advance animation
             frame_generators[i].__next__()
     frame_gen = concatechain(*frame_generators, separator='\n')
     yield from frame_gen
