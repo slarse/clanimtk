@@ -11,7 +11,9 @@ import logging
 import functools
 import sys
 import itertools
-from typing import Generator, Callable
+from typing import Generator, Callable, Optional, Any
+
+from clanimtk import types
 from clanimtk.util import get_supervisor, concatechain
 from clanimtk.animation import animation
 
@@ -40,14 +42,17 @@ class Annotate:
                 pass
     """
 
-    def __init__(self, *, start_msg=None, end_msg=None, start_no_nl=False):
+    def __init__(self,
+                 *,
+                 start_msg: Optional[str] = None,
+                 end_msg: Optional[str] = None,
+                 start_no_nl: bool = False):
         """Note that both arguments are keyword only arguments.
 
         Args:
-            start_msg (str): A message to print before the function runs.
-            end_msg (str): A message to print after the function has finished.
-            start_no_nl (bool): If True, no newline is appended after the
-            start_msg.
+            start_msg: A message to print before the function runs.  end_msg: A
+            message to print after the function has finished.  start_no_nl: If
+            True, no newline is appended after the start_msg.
         """
         if start_msg is None and end_msg is None:
             raise ValueError(
@@ -76,9 +81,9 @@ class Annotate:
     def __call__(self, func, *args, **kwargs):
         """
         Args:
-            func (function): The annotated function.
-            args (tuple): Arguments for func.
-            kwargs (dict): Keyword arguments for func.
+            func: The annotated function.
+            args: Arguments for func.
+            kwargs: Keyword arguments for func.
         """
         if asyncio.iscoroutinefunction(func):
             return self._async_call(func, *args, **kwargs)
@@ -88,9 +93,9 @@ class Annotate:
         """__call__ function for regular synchronous functions.
 
         Args:
-            func (function): The annotated function.
-            args (tuple): Arguments for func.
-            kwargs (dict): Keyword arguments for func.
+            func: The annotated function.
+            args: Arguments for func.
+            kwargs: Keyword arguments for func.
         """
 
         @functools.wraps(func)
@@ -109,9 +114,9 @@ class Annotate:
         """__call__ function for asyncio coroutines.
 
         Args:
-            func (function): The annotated function.
-            args (tuple): Arguments for func.
-            kwargs (dict): Keyword arguments for func.
+            func: The annotated function.
+            args: Arguments for func.
+            kwargs: Keyword arguments for func.
         """
 
         @functools.wraps(func)
@@ -127,12 +132,15 @@ class Annotate:
         return wrapper
 
 
-def animate(func=None, *, animation=_default_animation(), step=0.1):
+def animate(func: Optional[Callable[..., Any]] = None,
+            *,
+            animation: types.FrameGenerator = _default_animation(),
+            step: float = 0.1):
     """Wrapper function for the _Animate wrapper class.
     
     Args:
         func: A function to be animated.
-        animation: The animation to run.
+        animation: A generator that yields animation frames.
         step: Approximate timestep between frames.
     Returns:
         An animated version of func if func is not None. Otherwise, a function
@@ -183,11 +191,11 @@ class _Animate:
         """Constructor.
 
         Args:
-            func (function): If Animate is used without kwargs, then the
+            func: If Animate is used without kwargs, then the
             function it decorates is passed in here. Otherwise, this is None.
-            This argument should NOT be given directly.
-            animation (generator): A generator that yields strings for the animation.
-            step (float): Seconds between each animation frame.
+            This argument should NOT be given directly via keyword assignment.
+            animation: A generator that yields strings for the animation.
+            step: Seconds between each animation frame.
         """
         if not callable(func):
             raise TypeError("argument 'func' for {!r} must be "
@@ -225,19 +233,29 @@ class _Animate:
             raise TypeError(msg)
 
 
-def multiline_frames(height=5, offset=1):
-    def outer(func):
-        @functools.wraps(func)
-        def inner(*args, **kwargs):
-            return _multi_line_frame_gen(func, height, offset, *args, **kwargs)
-        return inner
-    return outer
+def multi_line_frame_generator(frame_function: types.FrameFunction,
+                               height: int,
+                               offset: int = 0,
+                               *args,
+                               **kwargs) -> types.FrameFunction:
+    """Multiline a single-lined frame generator. Simply chains several frame
+    generators together, and applies the specified offset to each one.
 
+    Args:
+        frame_function: A function that returns a singleline FrameGenerator.
+        height: The amount of frame generators to stack vertically (determines
+        the height in characters).
+        offset: An offset to apply to each successive generator. If the offset
+        is 2, then the first generator starts at frame 0, the second at frame
+        2, the third at frame 4, and so on.
 
-def _multi_line_frame_gen(frame_gen_func, height, offset, *args, **kwargs):
+    Returns:
+        A function that returns multiline versions of the provided frame
+        generator function.
+    """
     frame_generators = []
     for i in range(height):
-        frame_generators.append(frame_gen_func(*args, **kwargs))
+        frame_generators.append(frame_function(*args, **kwargs))
         for _ in range(i * offset):  # advance animation
             frame_generators[i].__next__()
     frame_gen = concatechain(*frame_generators, separator='\n')

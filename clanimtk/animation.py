@@ -7,11 +7,13 @@
 """
 import itertools
 import functools
+from typing import Generator, Callable
 from clanimtk.util import concatechain, BACKSPACE_GEN, BACKLINE_GEN
 from clanimtk.cli import BACKLINE, BACKSPACE
 
 
-def animation(animation_func):
+def animation(animation_func: Callable[..., Generator[str, None, None]]
+              ) -> Callable[..., Generator[str, None, None]]:
     """A wrapper for string generators. Provided an endless string generator
     function, Animation will turn it into an animation generator that yields
     frames (endlessly), that contain both the characters the generator
@@ -21,7 +23,7 @@ def animation(animation_func):
         animation_func: A function that returns an endles generator.
 
     Returns:
-        an animation decorator function.
+        an animation decorator function
     """
     anim = _Animation(animation_func)
 
@@ -101,11 +103,11 @@ def _get_back_up_generator(animation_func, *args, **kwargs):
     a generator that yields strings of constant width and height.
 
     Args:
-        animation_func (function): A function that returns an animation generator.
-        args (tuple): Arguments for animation_func.
-        kwargs (dict): Keyword arguments for animation_func.
+        animation_func: A function that returns an animation generator.
+        args: Arguments for animation_func.
+        kwargs: Keyword arguments for animation_func.
     Returns:
-        generator: A generator that generates backspace/backline characters for
+        a generator that generates backspace/backline characters for
         the animation func generator.
     """
     lines = next(animation_func(*args, **kwargs)).split('\n')
@@ -120,12 +122,12 @@ def _backspaced_single_line_animation(animation_, *args, **kwargs):
     """Turn an animation into an automatically backspaced animation.
 
     Args:
-        animation (func): A function that returns a generator that yields
+        animation: A function that returns a generator that yields
         strings for animation frames.
-        args (tuple): Arguments for the animation function.
-        kwargs (dict): Keyword arguments for the animation function.
+        args: Arguments for the animation function.
+        kwargs: Keyword arguments for the animation function.
     Returns:
-        The animation generator, with backspaces applied to each but the first
+        the animation generator, with backspaces applied to each but the first
         frame.
     """
     animation_gen = animation_(*args, **kwargs)
