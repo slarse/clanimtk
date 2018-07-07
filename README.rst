@@ -32,21 +32,30 @@ Core concepts
 object types. It is essential to have these in the back of the head to
 efficiently use the toolkit.
 
-* **``FrameGenerator``:** A ``FrameGenerator`` is any generator that has no
-  sendtype nor returntype, and yields any number of strings that have a
-  constant width and height. That is to say, each string must have fixed line
-  lengths, and no string may differ in dimensions from any other.
-* **``FrameFunction``:** Any function that returns a ``FrameGenerator``.
-* **``AnimationGenerator``:** A generator that yields an endless amount of strings,
-  where each string is terminated with characters that back up the cursor to its
-  starting point (after the string has been printed).
-* **``Animation``:** Any function that returns an ```AnimationGenerator``.
+* **Frame:** A string with fixed linelength. I.e., Either there is only
+  one line in the string, or each newline character is preceeded by the exact
+  same amount of characters.
+* **FrameGenerator:** A ``FrameGenerator`` is any generator that has no
+  sendtype nor returntype, and yields any number of ``Frame`` strings that
+  have identical dimensions. That is to say, each ``Frame`` yielded by
+  the generator must have the same amount of lines, and same linelength,
+  as all of the others.
+* **FrameFunction:** Any function that returns a ``FrameGenerator``.
+* **AnimationGenerator:** A generator that yields an endless amount of
+  ``Frame`` strings, but each ``Frame`` is terminated by backspace/up
+  character such that printing the ``Frame`` results in the cursor ending
+  up at its start position.
+* **Animation:** Any function that returns an ``AnimationGenerator``.
+
+All of these types, along with some other types used in the package, are
+type-defined in the `types module`_. Do note that several of the types
+are simply aliases of each other, or other existing types.
 
 Knowing about these concepts, we can turn to the main functionality of
 ``clanimtk``, which is provided in the form of two decorators.
 
-* **``@animation``:** Turns a ``FrameFunction`` into an ``Animation``.
-* **``@animate``:** Given an ``AnimationGenerator``, ``@animate`` will print
+* **@animation:** Turns a ``FrameFunction`` into an ``Animation``.
+* **@animate:** Given an ``AnimationGenerator``, ``@animate`` will print
   frames to stdout as long as the decorated function is running.
 
 Using ``clanimtk``, the only thing you need to write yourself to create a
@@ -134,5 +143,6 @@ To be added ...
 
 .. _license file: LICENSE
 .. _sample configuration: config.cnf
+.. _types module: clanimtk/types.py
 .. _requirements.txt: requirements.txt
 .. _Docs: https://clanimtk.readthedocs.io/en/latest/
