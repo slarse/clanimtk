@@ -8,34 +8,32 @@
 import itertools
 import functools
 from typing import Generator, Callable
+
+from clanimtk import types
 from clanimtk.util import concatechain, BACKSPACE_GEN, BACKLINE_GEN
 from clanimtk.cli import BACKLINE, BACKSPACE
 
 
-def animation(animation_func: Callable[..., Generator[str, None, None]]
-              ) -> Callable[..., Generator[str, None, None]]:
-    """A wrapper for string generators. Provided an endless string generator
-    function, Animation will turn it into an animation generator that yields
-    frames (endlessly), that contain both the characters the generator
-    provides, and escape codes to back up the cursor to the starting position.
+def animation(frame_function: types.FrameFunction) -> types.Animation:
+    """Turn a FrameFunction into an Animation.
 
     Args:
-        animation_func: A function that returns an endles generator.
+        frame_function: A function that returns a FrameGenerator.
 
     Returns:
-        an animation decorator function
+        an Animation decorator function.
     """
-    anim = _Animation(animation_func)
+    animation_ = _Animation(frame_function)
 
-    @functools.wraps(animation_func)
+    @functools.wraps(frame_function)
     def wrapper(*args, **kwargs):
-        return anim(*args, **kwargs)
+        return animation_(*args, **kwargs)
 
     return wrapper
 
 
 class _Animation:
-    """A wrapper class for animation generators. It automatically backs up
+    """A wrapper class for FrameFunctions. It automatically backs up
     the cursor after each frame, and provides reset and erase functionality.
 
     .. DANGER::
@@ -45,12 +43,12 @@ class _Animation:
     """
 
     def __init__(self,
-                 animation_func,
+                 frame_function,
                  current_generator=None,
                  back_up_generator=None,
                  animation_args=None,
                  animation_kwargs=None):
-        self._animation_func = animation_func
+        self._frame_function = frame_function
         self._current_generator = current_generator
         self._back_up_generator = back_up_generator
         self._animation_args = animation_args
@@ -59,7 +57,7 @@ class _Animation:
 
     def reset(self):
         """Reset the current animation generator."""
-        animation_gen = self._animation_func(*self._animation_args,
+        animation_gen = self._frame_function(*self._animation_args,
                                              **self._animation_kwargs)
         self._current_generator = itertools.cycle(
             concatechain(animation_gen, self._back_up_generator))
@@ -88,29 +86,29 @@ class _Animation:
         self._animation_args = args
         self._animation_kwargs = kwargs
         self._back_up_generator = _get_back_up_generator(
-            self._animation_func, *args, **kwargs)
+            self._frame_function, *args, **kwargs)
         self.reset()
-        return cls(self._animation_func, self._current_generator,
+        return cls(self._frame_function, self._current_generator,
                    self._back_up_generator, args, kwargs)
 
     def __iter__(self):
         return iter(self._current_generator)
 
 
-def _get_back_up_generator(animation_func, *args, **kwargs):
+def _get_back_up_generator(frame_function, *args, **kwargs):
     """Create a generator for the provided animation function that backs up
     the cursor after a frame. Assumes that the animation function provides
     a generator that yields strings of constant width and height.
 
     Args:
-        animation_func: A function that returns an animation generator.
-        args: Arguments for animation_func.
-        kwargs: Keyword arguments for animation_func.
+        frame_function: A function that returns a FrameGenerator.
+        args: Arguments for frame_function.
+        kwargs: Keyword arguments for frame_function.
     Returns:
         a generator that generates backspace/backline characters for
         the animation func generator.
     """
-    lines = next(animation_func(*args, **kwargs)).split('\n')
+    lines = next(frame_function(*args, **kwargs)).split('\n')
     width = len(lines[0])
     height = len(lines)
     if height == 1:

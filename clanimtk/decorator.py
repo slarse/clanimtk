@@ -22,7 +22,7 @@ ANNOTATED = '_clanimtk_annotated'
 
 @animation
 def _default_animation():
-    return itertools.cycle([("#" * i).ljust(5) for i in range(5)])
+    return (("#" * i).ljust(4) for i in range(5))
 
 
 class Annotate:
@@ -233,12 +233,12 @@ class _Animate:
             raise TypeError(msg)
 
 
-def multi_line_frame_generator(frame_function: types.FrameFunction,
-                               height: int,
-                               offset: int = 0,
-                               *args,
-                               **kwargs) -> types.FrameFunction:
-    """Multiline a single-lined frame generator. Simply chains several frame
+def multiline_frame_function(frame_function: types.FrameFunction,
+                            height: int,
+                            offset: int = 0,
+                            *args,
+                            **kwargs) -> types.FrameFunction:
+    """Multiline a singlelined frame function. Simply chains several frame
     generators together, and applies the specified offset to each one.
 
     Args:
