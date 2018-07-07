@@ -198,24 +198,6 @@ class _Animate:
         self._step = step
         functools.update_wrapper(self, func)
 
-    def _call_without_kwargs(self, animation_, step, func, *args, **kwargs):
-        """The function that __call__ calls if the constructor did not recieve
-        any kwargs.
-
-        NOTE: This method should ONLY be called directly in the constructor!
-
-        Args:
-            animation_ (generator): A generator yielding strings for the animation.
-            step (float): Seconds between each animation frame.
-            func (function): A function to run alongside an animation.
-            args (tuple): Positional arguments for func.
-            kwargs (dict): Keyword arguments for func.
-        Returns:
-            A function if func is a function, and a coroutine if func is a
-            coroutine.
-        """
-        return get_supervisor(func)(animation_, step, *args, **kwargs)
-
     def __call__(self, *args, **kwargs):
         """Make the class instance callable.
 
@@ -248,9 +230,7 @@ def multiline_frames(height=5, offset=1):
         @functools.wraps(func)
         def inner(*args, **kwargs):
             return _multi_line_frame_gen(func, height, offset, *args, **kwargs)
-
         return inner
-
     return outer
 
 

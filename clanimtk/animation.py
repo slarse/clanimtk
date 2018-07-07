@@ -17,14 +17,11 @@ def animation(animation_func):
     frames (endlessly), that contain both the characters the generator
     provides, and escape codes to back up the cursor to the starting position.
 
-    .. IMPORTANT::
-
-        This function wraps the _Animation class, which is the actual implementation
-        of this functionality. It is very important not to use the _Animation class
-        directly, as unexpected behavior can occur
-
     Args:
         animation_func: A function that returns an endles generator.
+
+    Returns:
+        an animation decorator function.
     """
     anim = _Animation(animation_func)
 
@@ -116,8 +113,7 @@ def _get_back_up_generator(animation_func, *args, **kwargs):
     height = len(lines)
     if height == 1:
         return BACKSPACE_GEN(width)
-    else:
-        return BACKLINE_GEN(height)
+    return BACKLINE_GEN(height)
 
 
 def _backspaced_single_line_animation(animation_, *args, **kwargs):
@@ -133,5 +129,5 @@ def _backspaced_single_line_animation(animation_, *args, **kwargs):
         frame.
     """
     animation_gen = animation_(*args, **kwargs)
-    yield next(animation_gen)
+    yield next(animation_gen)  # no backing up on the first frame
     yield from concatechain(BACKSPACE_GEN(kwargs['width']), animation_gen)
