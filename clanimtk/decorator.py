@@ -234,10 +234,10 @@ class _Animate:
 
 
 def multiline_frame_function(frame_function: types.FrameFunction,
-                            height: int,
-                            offset: int = 0,
-                            *args,
-                            **kwargs) -> types.FrameFunction:
+                             height: int,
+                             offset: int = 0,
+                             *args,
+                             **kwargs) -> types.FrameGenerator:
     """Multiline a singlelined frame function. Simply chains several frame
     generators together, and applies the specified offset to each one.
 
@@ -250,8 +250,7 @@ def multiline_frame_function(frame_function: types.FrameFunction,
         2, the third at frame 4, and so on.
 
     Returns:
-        A function that returns multiline versions of the provided frame
-        generator function.
+        a multiline version fo the generator returned by frame_function
     """
     frame_generators = []
     for i in range(height):
