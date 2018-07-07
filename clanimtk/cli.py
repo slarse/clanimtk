@@ -20,7 +20,7 @@ def erase(status):
     """
     sys.stdout.write('\x08'*len(status))
 
-def animate_cli(animation_, step, signal):
+def animate_cli(animation_, step, event):
     """Print out the animation cycle to stdout. This function is for use with
     synchronous functions and must be run in a thread.
 
@@ -28,10 +28,8 @@ def animate_cli(animation_, step, signal):
         animation_ (generator): A generator that produces strings for the
         animation. Should be endless.
         step (float): Seconds between each animation frame.
-        signal (Signal): An object that can be used to signal the thread to
-        stop.
     """
-    while not signal.done:
+    while not event.is_set():
         time.sleep(step)
         frame = next(animation_)
         sys.stdout.write(frame)
