@@ -31,51 +31,54 @@ def animate_test_variables():
     return mock_function, return_value, docstring, mock_animation, step, animate_
 
 
+@pytest.fixture()
+def mock_get_supervisor(mocker):
+    return mocker.patch(
+        'clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
+
 
 class TestAnimate:
-    def test_animate_with_kwargs_does_not_remove_coroutinefunc_status(self):
-        async def func():
+    def test_function_type_is_unchanged(self):
+        """Test that async functions remain async, and that regular functions
+        do not become async, after being decorated.
+        """
+
+        async def async_func():
             pass
 
-        animated_func = animate(animation=_default_animation())(func)
-        assert asyncio.iscoroutinefunction(animated_func)
-
-    def test_animate_with_kwargs_does_not_add_corotuinefunc_status(self):
         def func():
             pass
 
         animated_func = animate(animation=_default_animation())(func)
+        animated_async_func = animate(
+            animation=_default_animation())(async_func)
+
         assert not asyncio.iscoroutinefunction(animated_func)
-
-    def test_animate_does_not_remove_corutinefunc_status(self):
-        async def func():
-            pass
-
-        animated_func = animate(func)
-        assert asyncio.iscoroutinefunction(animated_func)
-
-    def test_animate_does_not_add_corotuinefunc_status(self):
-        def func():
-            pass
-
-        animated_func = animate(func)
-        assert not asyncio.iscoroutinefunction(animated_func)
+        assert asyncio.iscoroutinefunction(animated_async_func)
 
     def test_animate_does_not_modify_signature(self):
         def func(a, b, c):
             pass
 
+        async def async_func(a, b, c):
+            pass
+
         expected_params = signature(func).parameters.keys()
+        expected_async_params = signature(async_func).parameters.keys()
         animated_func = animate(func)
-        actual_params = signature(func).parameters.keys()
+        animated_async_func = animate(async_func)
+
+        actual_params = signature(animated_func).parameters.keys()
+        actual_async_params = signature(animated_async_func).parameters.keys()
+
         assert actual_params == expected_params
+        assert actual_async_params == expected_async_params
 
     def test_animate_with_non_callable(self):
         non_callable = 1
         with pytest.raises(TypeError):
             animate(func=non_callable)
 
-    @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_with_decorator_kwargs(self, mock_get_supervisor):
         """This test emulates using kwargs in the decorator, so
         that the decorator is actually called on the kwargs, and
@@ -90,7 +93,6 @@ class TestAnimate:
         assert wrapped_function.__doc__ == docstring
         assert result == return_value
 
-    @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_with_decorator_kwargs_and_function_args_and_kwargs(
             self, mock_get_supervisor):
         args = ('herro', 2, lambda x: 2 * x)
@@ -105,7 +107,6 @@ class TestAnimate:
         assert wrapped_function.__doc__ == docstring
         assert result == return_value
 
-    @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_without_decorator_kwargs(self, mock_get_supervisor):
         """Emulates decorating a function without calling the decorator explicitly."""
         mock_function, return_value, docstring, _, _, _ = (
@@ -117,7 +118,6 @@ class TestAnimate:
         assert wrapped_function.__doc__ == docstring
         assert result == return_value
 
-    @patch('clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
     def test_animate_without_decorator_kwargs_with_function_args_and_kwargs(
             self, mock_get_supervisor):
         args = ('herro', 2, lambda x: 2 * x)
