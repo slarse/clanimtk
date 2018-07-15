@@ -24,8 +24,8 @@ clanimtk
 .. image:: images/hello_world.gif
     :alt: Scrolling text animation
 
-    The ``scrolling_text`` animation can be found in the ``clanim`` package,
-    which contains some examples of how one can use ``clanimtk``.
+The ``scrolling_text`` animation can be found in the ``clanim`` package,
+which contains some examples of how one can use ``clanimtk``.
 
 Overview
 ========
