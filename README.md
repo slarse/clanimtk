@@ -6,9 +6,7 @@
 [![PyPi Version](https://badge.fury.io/py/clanimtk.svg)](https://badge.fury.io/py/clanimtk)
 [![Supported Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://badge.fury.io/py/clanimtk)
 
-.. contents::
-
-[Scrolling text animation example](images/hello_world.gif)
+![Scrolling text animation example](images/hello_world.gif)
 
 > The `scrolling_text` animation can be found in the `clanim` package,
 > which contains some examples of how one can use `clanimtk`.
