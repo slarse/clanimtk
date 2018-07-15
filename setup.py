@@ -9,7 +9,7 @@ with open('LICENSE') as f:
 
 test_requirements = ['pytest>=3.1.1', 'pytest-cov>=2.5.1', 'codecov',
                      'asynctest']
-required = ['daiquiri']
+required = []
 
 setup(
     name='clanimtk',
