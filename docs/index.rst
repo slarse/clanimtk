@@ -6,10 +6,17 @@
 Welcome to clanimtk's documentation!
 ==================================================
 
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-    code
+   
+   api
 
 Core concepts
 =============
@@ -33,8 +40,8 @@ using the toolkit.
 * **Animation:** Any function that returns an ``AnimationGenerator``.
 
 All of these types, along with some other types used in the package, are
-type-defined in the `types module`_. Do note that several of the types
-are simply aliases of each other, or other existing types.
+type-defined in the :py:module::`~clanimtk.types` module. Do note that several
+of the types are simply aliases of each other, or other existing types.
 
 Knowing about these concepts, we can turn to the main functionality of
 ``clanimtk``, which is provided in the form of two decorators.
@@ -68,8 +75,9 @@ can be used with the ``@animate`` decorator:
 
     from clanimtk import animate
     import time
-
-    @animate(animation=hashes()) # note that the Animation is called to produce an AnimationGenerator
+    
+    # note that `hashes` is called to produce an AnimationGenerator
+    @animate(animation=hashes())
     def sleep(duration):
         time.sleep(duration)
         return 42
@@ -108,7 +116,8 @@ strings that each have the same number of lines.
     def ab():
         return iter([a, b])
 
-    @animate(animation=ab(), step=.5) # step is approx seconds between frames
+    # `step` is approx seconds between frames
+    @animate(animation=ab(), step=.5)
     def func():
         time.sleep(10)
 
@@ -117,12 +126,6 @@ This ends up looking like this:
 .. image:: images/ab.gif
     :alt: Simple multiline animation
 
-For more examples, have a look at the ``clanim`` package!
+For more examples, have a look at the `clanim`_ package!
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. _clanim: https://github.com/slarse/clanim

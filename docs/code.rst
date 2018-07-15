@@ -1,16 +1,14 @@
-Documentation for pdfebc-web
+Module reference for clanimtk
 *****************************
 
-.. automodule:: clanimtk
-
-factory
-====================
-
-.. automodule:: clanimtk.factory
+.. automodule:: clanimtk.decorator
     :members:
 
-main.views
-====================
+.. automodule:: clanimtk.anim
+    :members:
 
-.. automodule:: clanimtk.main.views
+.. automodule:: clanimtk.util
+    :members:
+
+.. automodule:: clanimtk.cli
     :members:
