@@ -2,7 +2,6 @@
 # pylint: disable=too-few-public-methods
 """
 .. module:: util
-    :platform: Unix
     :synopsis: This module contains utility functions.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """
@@ -10,7 +9,6 @@
 import asyncio
 import functools
 import itertools
-from typing import Any, Generator
 from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Event
@@ -93,7 +91,7 @@ def _sync_supervisor(func, animation_, step, *args, **kwargs):
     return result
 
 
-def concatechain(*generators: Generator[Any, None, None], separator: str = ''):
+def concatechain(*generators: types.FrameGenerator, separator: str = ''):
     """Return a generator that in each iteration takes one value from each of the
     supplied generators, joins them together with the specified separator and
     yields the result. Stops as soon as any iterator raises StopIteration and

@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 .. module: animation
-    :platform: Unix
-    :synopsis: _Animation decorators.
+    :synopsis: Animation decorators.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """
 import itertools
 import functools
-from typing import Generator, Callable
 
 from clanimtk import types
 from clanimtk.util import concatechain, BACKSPACE_GEN, BACKLINE_GEN

@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: decorator
-    :platform: Unix
     :synopsis: This module contains all of the clanim decorators.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """
 #pylint: disable=missing-docstring,too-few-public-methods
 import asyncio
-import logging
 import functools
 import sys
-import itertools
-from typing import Generator, Callable, Optional, Any
+from typing import Optional
 
 from clanimtk import types
 from clanimtk.util import get_supervisor, concatechain
@@ -132,16 +129,16 @@ class Annotate:
         return wrapper
 
 
-def animate(func: Optional[Callable[..., Any]] = None,
+def animate(func: types.AnyFunction = None,
             *,
-            animation: types.FrameGenerator = _default_animation(),
-            step: float = 0.1):
+            animation: types.AnimationGenerator = _default_animation(),
+            step: float = 0.1) -> types.AnyFunction:
     """Wrapper function for the _Animate wrapper class.
     
     Args:
-        func: A function to be animated.
-        animation: A generator that yields animation frames.
-        step: Approximate timestep between frames.
+        func: A function to run while animation is showing.
+        animation_gen: An AnimationGenerator that yields animation frames.
+        step: Approximate timestep (in seconds) between frames.
     Returns:
         An animated version of func if func is not None. Otherwise, a function
         that takes a function and returns an animated version of that.
@@ -149,16 +146,16 @@ def animate(func: Optional[Callable[..., Any]] = None,
     if callable(func):
         return _animate_no_kwargs(func, animation, step)
     elif func is None:
-        return _animate_with_kwargs(animation=animation, step=step)
+        return _animate_with_kwargs(animation_gen=animation, step=step)
     else:
         raise TypeError("argument 'func' must either be None or callable")
 
 
-def _animate_no_kwargs(func, animation, step):
+def _animate_no_kwargs(func, animation_gen, step):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return _Animate(
-            func=func, animation=animation, step=step)(*args, **kwargs)
+            func=func, animation_gen=animation_gen, step=step)(*args, **kwargs)
     return wrapper if not asyncio.iscoroutinefunction(func)\
                    else asyncio.coroutine(wrapper)
 
@@ -187,14 +184,18 @@ class _Animate:
         animate function.
     """
 
-    def __init__(self, func=None, *, animation=_default_animation(), step=.1):
+    def __init__(self,
+                 func=None,
+                 *,
+                 animation_gen=_default_animation(),
+                 step=.1):
         """Constructor.
 
         Args:
             func: If Animate is used without kwargs, then the
             function it decorates is passed in here. Otherwise, this is None.
             This argument should NOT be given directly via keyword assignment.
-            animation: A generator that yields strings for the animation.
+            animation_gen: A generator that yields strings for the animation.
             step: Seconds between each animation frame.
         """
         if not callable(func):
@@ -202,7 +203,7 @@ class _Animate:
                             "callable".format(self.__class__.__name__))
         self._raise_if_annotated(func)
         self._func = func
-        self._animation = animation
+        self._animation_gen = animation_gen
         self._step = step
         functools.update_wrapper(self, func)
 
@@ -212,7 +213,7 @@ class _Animate:
         func (function): If the
         """
         supervisor = get_supervisor(self._func)
-        return supervisor(self._animation, self._step, *args, **kwargs)
+        return supervisor(self._animation_gen, self._step, *args, **kwargs)
 
     def _raise_if_annotated(self, func):
         """Raise TypeError if a function is decorated with Annotate, as such

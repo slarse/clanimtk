@@ -1,7 +1,6 @@
 """A module with type hint aliases.
 
 .. module:: types
-    :platform: Unix
     :synopsis: Type hint aliases to reduce clutter in the API.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """

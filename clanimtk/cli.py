@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: cli
-    :platform: Unix
     :synopsis: This module contains all functions that interact with the CLI.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """
@@ -11,6 +10,7 @@ import time
 BACKSPACE = '\x08'
 BACKLINE = '\033[F'
 
+
 def erase(status):
     """Erases the given status message from stdout by backspacing as many times
     as the status is long.
@@ -18,7 +18,8 @@ def erase(status):
     Args:
         status (str): A status message that is already printed to stdout.
     """
-    sys.stdout.write('\x08'*len(status))
+    sys.stdout.write('\x08' * len(status))
+
 
 def animate_cli(animation_, step, event):
     """Print out the animation cycle to stdout. This function is for use with
