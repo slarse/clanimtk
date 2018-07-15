@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-.. module: animation
-    :synopsis: Animation decorators.
+.. module: anim
+    :synopsis: Core functionality for the animation decorator.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """
 import itertools
@@ -10,6 +10,7 @@ import functools
 from clanimtk import types
 from clanimtk.util import concatechain, BACKSPACE_GEN, BACKLINE_GEN
 from clanimtk.cli import BACKLINE, BACKSPACE
+
 
 def animation(frame_function: types.FrameFunction) -> types.Animation:
     """Turn a FrameFunction into an Animation.
