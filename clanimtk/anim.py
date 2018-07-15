@@ -11,7 +11,6 @@ from clanimtk import types
 from clanimtk.util import concatechain, BACKSPACE_GEN, BACKLINE_GEN
 from clanimtk.cli import BACKLINE, BACKSPACE
 
-
 def animation(frame_function: types.FrameFunction) -> types.Animation:
     """Turn a FrameFunction into an Animation.
 

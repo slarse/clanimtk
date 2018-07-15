@@ -12,7 +12,7 @@ from typing import Optional
 
 from clanimtk import types
 from clanimtk.util import get_supervisor, concatechain
-from clanimtk.animation import animation
+from clanimtk.anim import animation
 
 ANNOTATED = '_clanimtk_annotated'
 
@@ -20,6 +20,7 @@ ANNOTATED = '_clanimtk_annotated'
 @animation
 def _default_animation():
     return (("#" * i).ljust(4) for i in range(5))
+
 
 
 class Annotate:
@@ -32,6 +33,8 @@ class Annotate:
         This decorator can also be used standalone, but you should NOT decorate a
         function that is decorated with Annotate with Animate. That is to say,
         the decorator order must be like this:
+
+        .. code-block:: python
 
             @Annotate
             @Animate
