@@ -21,6 +21,12 @@ clanimtk
 
 .. contents::
 
+.. image:: images/hello_world.gif
+    :alt: Scrolling text animation
+
+    The ``scrolling_text`` animation can be found in the ``clanim`` package,
+    which contains some examples of how one can use ``clanimtk``.
+
 Overview
 ========
 ``clanimtk`` (Command Line Animation Toolkit) is a toolkit for quickly creating
@@ -29,8 +35,8 @@ custom command line animations.
 Core concepts
 =============
 ``clanimtk`` works with a few, simple core concepts that revolve around certain
-object types. It is essential to have these in the back of the head to
-efficiently use the toolkit.
+object types. It is beneficial to keep these in the back of the head when
+using the toolkit.
 
 * **Frame:** A string with fixed linelength. I.e., Either there is only
   one line in the string, or each newline character is preceeded by the exact
@@ -84,7 +90,7 @@ can be used with the ``@animate`` decorator:
     from clanimtk import animate
     import time
 
-    @animate(animation=hashes())
+    @animate(animation=hashes()) # note that the Animation is called to produce an AnimationGenerator
     def sleep(duration):
         time.sleep(duration)
         return 42
@@ -94,14 +100,45 @@ You can see the not-too-impressive results in the gif below.
 .. image:: images/example_animation.gif
     :alt: An example animation
 
-However, with some effort and perseverance, it's possible to create some pretty
-cool animations:
+Creating a multiline animation is similarly simple, you simply create ``Frame``
+strings that each have the same number of lines.
 
-.. image:: images/hello_world.gif
-    :alt: Scrolling text animation
+.. code-block:: python
+    
+    import time
+    from clanimtk import animation, animate
 
-Some more examples, including the scrolling text animation seen above, can be
-found in the ``clanim`` package.
+    # note that there is invisible whitespace to the right
+    # of some characters. For example, the first line in the
+    # A actually looks like `_XXX_`, where `_` is a space.
+    a = """
+     XXX 
+    X   X
+    XXXXX
+    X   X
+    X   X""".strip('\n')
+
+    b = """
+    XXXX 
+    X   X
+    XXXX 
+    X   X
+    XXXX """.strip('\n')
+    
+    @animation
+    def ab():
+        return iter([a, b])
+
+    @animate(animation=ab(), step=.5) # step is approx seconds between frames
+    def func():
+        time.sleep(10)
+
+This ends up looking like this:
+
+.. image:: images/ab.gif
+    :alt: Simple multiline animation
+
+For more examples, have a look at the ``clanim`` package!
 
 Requirements
 ============
