@@ -6,10 +6,11 @@
 [![PyPi Version](https://badge.fury.io/py/clanimtk.svg)](https://badge.fury.io/py/clanimtk)
 [![Supported Python Versions](https://img.shields.io/badge/python-3.6-blue.svg)](https://badge.fury.io/py/clanimtk)
 
-![Scrolling text animation example](images/hello_world.gif)
+![Scrolling text animation example](docs/images/hello_world.gif)
 
-> The `scrolling_text` animation can be found in the `clanim` package,
-> which contains some examples of how one can use `clanimtk`.
+> The `scrolling_text` animation can be found in the
+> [`clanim`](https://github.com/slarse/clanim) package, which contains some
+> examples of how one can use `clanimtk`.
 
 ### Overview
 
@@ -38,7 +39,7 @@ def sleep(duration):
 
 which results in the folowing animation:
 
-![Simple animation](images/example_animation.gif)
+![Simple animation](docs/images/example_animation.gif)
 
 The whole thing is explained in detail in the
 [Docs](https://clanimtk.readthedocs.io/en/latest/).
