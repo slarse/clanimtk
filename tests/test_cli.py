@@ -38,7 +38,7 @@ def test_animate_cli(mock_flush, mock_write):
         thread = threading.Thread(
             target=cli.animate_cli, args=(animation_mock, step, event))
         thread.start()
-    time.sleep(.1)
+    time.sleep(.5)
     event.set()  # terminate
 
     mock_flush.assert_called()
