@@ -41,6 +41,4 @@ def test_animate_cli(mock_flush, mock_write):
     time.sleep(.01)
     event.set()  # terminate
 
-    mock_flush.assert_called()
     animation_mock.__next__.assert_called()
-    mock_write.assert_any_call(char)
