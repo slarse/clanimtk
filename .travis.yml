@@ -1,0 +1,15 @@
+sudo: false
+language: python
+
+matrix:
+    include:
+        - python: 3.6
+        - python: 3.7
+          dist: xenial
+          sudo: true
+
+script: pytest --cov=clanimtk
+after_success:
+    - codecov
+notifications:
+    email: false
