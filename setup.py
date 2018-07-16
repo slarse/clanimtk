@@ -7,24 +7,23 @@ with open('README.md') as f:
 with open('LICENSE') as f:
     license = f.read()
 
-test_requirements = ['pytest>=3.1.1', 'pytest-cov>=2.5.1', 'codecov',
-                     'asynctest']
+test_requirements = [
+    'pytest>=3.1.1', 'pytest-cov>=2.5.1', 'codecov', 'asynctest'
+]
 required = []
 
 setup(
     name='clanimtk',
-    version='0.0.1',
-    description=('Command line animations made easy!'),
+    version='0.1.0',
+    description='Command line animations made easy!',
     long_description=readme,
     author='Simon Larsén',
     author_email='slarse@kth.se',
     url='https://github.com/slarse/clanimtk',
-    #download_url='https://github.com/slarse/clanimtk/archive/v0.1.0.tar.gz',
+    download_url='https://github.com/slarse/clanimtk/archive/v0.1.0.tar.gz',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
     tests_require=test_requirements,
     install_requires=required,
-    scripts=['bin/clanimtk'],
     include_package_data=True,
-    zip_safe=False
-)
+    zip_safe=False)
