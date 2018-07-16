@@ -17,6 +17,7 @@ Indices and tables
    :maxdepth: 2
    
    api
+   code
 
 Core concepts
 =============
