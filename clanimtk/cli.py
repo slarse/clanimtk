@@ -30,11 +30,13 @@ def animate_cli(animation_, step, event):
         animation. Should be endless.
         step (float): Seconds between each animation frame.
     """
-    while not event.is_set():
+    while True:  # run at least once, important for tests!
         time.sleep(step)
         frame = next(animation_)
         sys.stdout.write(frame)
         sys.stdout.flush()
+        if event.is_set():
+            break
     sys.stdout.write(animation_.get_erase_frame())
     sys.stdout.flush()
     animation_.reset()

@@ -29,10 +29,10 @@ def test_erase(mock_write):
 
 def test_animate_cli(mock_flush, mock_write):
     """Tests that animate cli writes to stdout and advances the
-    AnimationGenerator. 
+    AnimationGenerator.
     
-    Because of the sleep, the test is probabilistic and may fail unexpectedly.
-    Any ideas for how to test this more reliably are super welcome.
+    This test relies on the fact that the animation loop runs
+    at least once.
     """
     event = Event()
     animation_mock = MagicMock()
@@ -44,8 +44,8 @@ def test_animate_cli(mock_flush, mock_write):
         thread = threading.Thread(
             target=cli.animate_cli, args=(animation_mock, step, event))
         thread.start()
-    time.sleep(.5)
     event.set()  # terminate
+    thread.join(timeout=10)
 
     sleep_mock.assert_called()
     mock_flush.assert_called()
