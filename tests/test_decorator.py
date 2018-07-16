@@ -14,8 +14,10 @@ import pytest
 from inspect import signature
 from unittest.mock import MagicMock, Mock, patch
 from .context import clanimtk
-from clanimtk.decorator import animate, ANNOTATED, _default_animation
-from clanimtk import annotate
+from clanimtk import annotate, animate
+from clanimtk.decorator import _default_animation
+
+from clanimtk.core import ANNOTATED
 
 
 def animate_test_variables():
@@ -34,7 +36,7 @@ def animate_test_variables():
 @pytest.fixture()
 def mock_get_supervisor(mocker):
     return mocker.patch(
-        'clanimtk.decorator.get_supervisor', side_effect=lambda func: func)
+        'clanimtk.util.get_supervisor', side_effect=lambda func: func)
 
 
 class TestAnimate:

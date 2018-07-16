@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 .. module:: decorator
-    :synopsis: This module contains all of the clanim decorators.
+    :synopsis: This module contains all of the clanim decorators and essentially constitutes the public API of the package.
 .. moduleauthor:: Simon Larsén <slarse@kth.se>
 """
 #pylint: disable=missing-docstring,too-few-public-methods
@@ -11,125 +11,31 @@ import sys
 from typing import Optional
 
 from clanimtk import types
+from clanimtk import core
 from clanimtk.util import get_supervisor, concatechain
-from clanimtk.anim import animation
 
-ANNOTATED = '_clanimtk_annotated'
+
+def animation(frame_function: types.FrameFunction) -> types.Animation:
+    """Turn a FrameFunction into an Animation.
+
+    Args:
+        frame_function: A function that returns a FrameGenerator.
+
+    Returns:
+        an Animation decorator function.
+    """
+    animation_ = core.Animation(frame_function)
+
+    @functools.wraps(frame_function)
+    def wrapper(*args, **kwargs):
+        return animation_(*args, **kwargs)
+
+    return wrapper
 
 
 @animation
 def _default_animation():
     return (("#" * i).ljust(4) for i in range(5))
-
-
-
-class Annotate:
-    """A decorator meant for decorating functions that are decorated with the
-    animation decorator. It prints a message to stdout before and/or after the
-    function has finished.
-
-    .. DANGER::
-
-        This decorator can also be used standalone, but you should NOT decorate a
-        function that is decorated with Annotate with Animate. That is to say,
-        the decorator order must be like this:
-
-        .. code-block:: python
-
-            @Annotate
-            @Animate
-            def some_function()
-                pass
-    """
-
-    def __init__(self,
-                 *,
-                 start_msg: Optional[str] = None,
-                 end_msg: Optional[str] = None,
-                 start_no_nl: bool = False):
-        """Note that both arguments are keyword only arguments.
-
-        Args:
-            start_msg: A message to print before the function runs.  end_msg: A
-            message to print after the function has finished.  start_no_nl: If
-            True, no newline is appended after the start_msg.
-        """
-        if start_msg is None and end_msg is None:
-            raise ValueError(
-                "At least one of 'start_msg' and 'end_msg' must be specified.")
-        self._raise_if_not_none_nor_string(start_msg, "start_msg")
-        self._raise_if_not_none_nor_string(end_msg, "end_msg")
-        self._start_msg = start_msg
-        self._end_msg = end_msg
-        self._start_no_nl = start_no_nl
-
-    def _raise_if_not_none_nor_string(self, msg, parameter_name):
-        if msg is not None and not isinstance(msg, str):
-            raise TypeError(f"Bad operand type for {self.__class__.__name__!r}"
-                            f".{parameter_name}: {type(msg)}")
-
-    def _start_print(self):
-        """Print the start message with or without newline depending on the
-        self._start_no_nl variable.
-        """
-        if self._start_no_nl:
-            sys.stdout.write(self._start_msg)
-            sys.stdout.flush()
-        else:
-            print(self._start_msg)
-
-    def __call__(self, func, *args, **kwargs):
-        """
-        Args:
-            func: The annotated function.
-            args: Arguments for func.
-            kwargs: Keyword arguments for func.
-        """
-        if asyncio.iscoroutinefunction(func):
-            return self._async_call(func, *args, **kwargs)
-        return self._sync_call(func, *args, **kwargs)
-
-    def _sync_call(self, func):
-        """__call__ function for regular synchronous functions.
-
-        Args:
-            func: The annotated function.
-            args: Arguments for func.
-            kwargs: Keyword arguments for func.
-        """
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            if self._start_msg:
-                self._start_print()
-            result = func(*args, **kwargs)
-            if self._end_msg:
-                print(self._end_msg)
-            return result
-
-        setattr(wrapper, ANNOTATED, True)
-        return wrapper
-
-    def _async_call(self, func):
-        """__call__ function for asyncio coroutines.
-
-        Args:
-            func: The annotated function.
-            args: Arguments for func.
-            kwargs: Keyword arguments for func.
-        """
-
-        @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            if self._start_msg:
-                print(self._start_msg)
-            result = await func(*args, **kwargs)
-            if self._end_msg:
-                print(self._end_msg)
-            return result
-
-        setattr(wrapper, ANNOTATED, True)
-        return wrapper
 
 
 def animate(func: types.AnyFunction = None,
@@ -140,7 +46,7 @@ def animate(func: types.AnyFunction = None,
     
     Args:
         func: A function to run while animation is showing.
-        animation_gen: An AnimationGenerator that yields animation frames.
+        animation: An AnimationGenerator that yields animation frames.
         step: Approximate timestep (in seconds) between frames.
     Returns:
         An animated version of func if func is not None. Otherwise, a function
@@ -157,17 +63,17 @@ def animate(func: types.AnyFunction = None,
 def _animate_no_kwargs(func, animation_gen, step):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        return _Animate(
+        return core.Animate(
             func=func, animation_gen=animation_gen, step=step)(*args, **kwargs)
     return wrapper if not asyncio.iscoroutinefunction(func)\
                    else asyncio.coroutine(wrapper)
 
 
-def _animate_with_kwargs(**decorator_kwargs):
+def _animate_with_kwargs(*, animation_gen, **decorator_kwargs):
     def outer(func):
         @functools.wraps(func)
         def inner(*args, **function_kwargs):
-            return _Animate(func=func, **decorator_kwargs)\
+            return core.Animate(func=func, animation_gen=animation_gen, **decorator_kwargs)\
                    (*args, **function_kwargs)
         return inner if not asyncio.iscoroutinefunction(func)\
                        else asyncio.coroutine(inner)
@@ -175,66 +81,28 @@ def _animate_with_kwargs(**decorator_kwargs):
     return outer
 
 
-class _Animate:
-    """A wrapper class for adding a CLI animation to a slow-running function.
-    Animate uses introspection to figure out if the function it decorates is
-    synchronous (defined with 'def') or asynchronous (defined with 'async def'),
-    and works with both.
+def annotate(*,
+             start_msg: Optional[str] = None,
+             end_msg: Optional[str] = None,
+             start_no_nl: bool = False) -> types.AnyFunction:
+    """A decorator meant for decorating functions that are decorated with the
+    `animate` decorator. It prints a message to stdout before and/or after the
+    function has finished.
 
     .. DANGER::
 
-        This class is not intended to be used directly, but rather through the
-        animate function.
+        This decorator can also be used standalone, but you should NOT decorate a
+        function that is decorated with `annotate` with `animate`. That is to say,
+        the decorator order must be like this:
+
+        .. code-block:: python
+
+            @annotate
+            @animate
+            def some_function()
+                pass
     """
-
-    def __init__(self,
-                 func=None,
-                 *,
-                 animation_gen=_default_animation(),
-                 step=.1):
-        """Constructor.
-
-        Args:
-            func: If Animate is used without kwargs, then the
-            function it decorates is passed in here. Otherwise, this is None.
-            This argument should NOT be given directly via keyword assignment.
-            animation_gen: A generator that yields strings for the animation.
-            step: Seconds between each animation frame.
-        """
-        if not callable(func):
-            raise TypeError("argument 'func' for {!r} must be "
-                            "callable".format(self.__class__.__name__))
-        self._raise_if_annotated(func)
-        self._func = func
-        self._animation_gen = animation_gen
-        self._step = step
-        functools.update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs):
-        """Make the class instance callable.
-
-        func (function): If the
-        """
-        supervisor = get_supervisor(self._func)
-        return supervisor(self._animation_gen, self._step, *args, **kwargs)
-
-    def _raise_if_annotated(self, func):
-        """Raise TypeError if a function is decorated with Annotate, as such
-        functions cause visual bugs when decorated with Animate.
-
-        Animate should be wrapped by Annotate instead.
-
-        Args:
-            func (function): Any callable.
-        Raises:
-            TypeError
-        """
-        if hasattr(func, ANNOTATED) and getattr(func, ANNOTATED):
-            msg = ('Functions decorated with {!r} '
-                   'should not be decorated with {!r}.\n'
-                   'Please reverse the order of the decorators!'.format(
-                       self.__class__.__name__, Annotate.__name__))
-            raise TypeError(msg)
+    return core.Annotate(start_msg=start_msg, end_msg=end_msg, start_no_nl=start_no_nl)
 
 
 def multiline_frame_function(frame_function: types.FrameFunction,
