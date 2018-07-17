@@ -17,6 +17,7 @@ setup(
     version='0.1.0',
     description='Command line animations made easy!',
     long_description=readme,
+    long_description_content_type='text/markdown',
     author='Simon Larsén',
     author_email='slarse@kth.se',
     url='https://github.com/slarse/clanimtk',
