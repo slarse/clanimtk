@@ -4,7 +4,7 @@
 [![Code Coverage](https://codecov.io/gh/slarse/clanimtk/branch/master/graph/badge.svg)](https://codecov.io/gh/slarse/clanimtk)
 [![Documentation Status](https://readthedocs.org/projects/clanimtk/badge/?version=latest)](https://clanimtk.readthedocs.io/en/latest/)
 [![PyPi Version](https://badge.fury.io/py/clanimtk.svg)](https://badge.fury.io/py/clanimtk)
-[![Supported Python Versions](https://img.shields.io/badge/python-3.5%2C%203.6-blue.svg)](https://badge.fury.io/py/clanimtk)
+[![Supported Python Versions](https://img.shields.io/badge/python-3.6%2C%203.7-blue.svg)](https://badge.fury.io/py/clanimtk)
 
 ![Scrolling text animation example](docs/images/hello_world.gif)
 
